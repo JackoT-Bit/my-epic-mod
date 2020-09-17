@@ -1,4 +1,4 @@
-# My epic and oh so legitimate Pizza Tower mod
+# My epic and oh so legit Pizza Tower mod
 
 Not a real one, that is.
 
