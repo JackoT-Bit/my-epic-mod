@@ -1,0 +1,85 @@
+'----------------------------------------------------------------------------------
+'----------------------------------------------------------------------------------
+'
+' h
+'
+'----------------------------------------------------------------------------------
+
+Sub Main 
+
+' _______________________
+'
+' CHANGE MANIFEST
+' _______________________
+
+  PEFileProxy.PostDebugString "Updating the checksum in the PE file header is enabled."  
+  PEFileProxy.UpdateCheckSum = True
+
+  PEFileProxy.PostDebugString "The creation of a backup copy is disabled."
+  PEFileProxy.CreateBackUp = False
+
+  LangID = 1033 ' English-US
+  CP     = ScriptUnit.CodePageFromLangID(LangID)
+  PEFileProxy.OpenFile ".\build.exe"
+  
+  if not PEFileProxy.Terminated then
+    if PEFileProxy.HasResources then
+      ResourcesProxy.SetLanguage LangID, DELETE_IF_EXISTS
+      if ResourcesProxy.OpenVersionInfo("1", LangID, CREATE_IF_NOT_EXIST) then
+	  
+        VersionInfoProxy.SetFileVersion  5, 1, 4, 20, LangID, True, True, True
+        VersionInfoProxy.SetProductVersion 5, 1, 0, 0, LangID, True, True, True
+
+        S2 = "a gaymake rstudio 2 game"
+        S4 = "pibza t owo er guy"
+        S6 = "pizza twoer"
+
+        VersionInfoProxy.EditStringFileInfo "FileDescription", S2, CP, LangID, True, True
+        VersionInfoProxy.EditStringFileInfo "LegalCopyright", S4, CP, LangID, True, True
+        VersionInfoProxy.EditStringFileInfo "ProductName", S6, CP, LangID, True, True
+
+        ResourcesProxy.CloseVersionInfo
+        PEFileProxy.Compile
+        PEFileProxy.SaveAsNewImage ".\build.exe"
+      else
+        PEFileProxy.PostDebugString "Can't open/create Version Info..."
+      end if
+    end if
+  end if
+' _______________________
+'
+' CHANGE ICON
+' _______________________
+
+  PEFileProxy.PostDebugString "Opening a file..."
+  PEFileProxy.OpenFile ".\build.exe"
+  if (PEFileProxy.Terminated) then
+    PEFileProxy.PostDebugString "Fatal error when opening the file."
+  else
+    PEFileProxy.PostDebugString "File successfully opened."
+    if (not PEFileProxy.HasResources) then
+      PEFileProxy.PostDebugString "The file contains no resources."
+    else
+      PEFileProxy.PostDebugString "The file contains resources."
+
+      LangID = 0 ' Default
+
+      PEFileProxy.PostDebugString "Changing/adding the main application icon..."
+      ResourcesProxy.ChangeIcon "", LangID, CREATE_IF_NOT_EXIST, REPLACE_IF_ITEM_EXISTS_ELSE_ADD, ".\resources\icon.ico"
+
+      PEFileProxy.PostDebugString "Compiling all changes..."
+      PEFileProxy.Compile
+
+      PEFileProxy.PostDebugString ""
+      PEFileProxy.PostDebugString "Resource Tree built by RTC:"
+      ResourcesProxy.ResourceTreeToLog
+      PEFileProxy.PostDebugString ""
+
+      PEFileProxy.PostDebugString "Saving changes to a new file..."
+      PEFileProxy.SaveAsNewImage ".\build.exe"
+    end if
+    PEFileProxy.PostDebugString "Closing this file..."
+    PEFileProxy.CloseFile
+  end if
+End Sub
+'------------------------------------------------------------------------------
